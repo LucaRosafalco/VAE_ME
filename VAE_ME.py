@@ -53,7 +53,7 @@ def MEloss(recM,logpM):
     M = recM.shape[0]
     MEloss = 0
     for m in range(M):
-        MEloss = MEloss + recM[m]*logpM[m]
+        MEloss = MEloss + recM[m]+logpM[m]
     MEloss /= M
     return MEloss 
 
