@@ -14,6 +14,11 @@ from tensorflow import keras
 from sklearn.model_selection import train_test_split
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+print('numpy==',np.__version__)
+print('sklearn==',np.__version__)
+print('tensorflow==',tf.__version__)
+print('keras==',np.__version__)
+
 # minimal settings%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #NN hyperparameters
 n_points   = 32
@@ -53,7 +58,7 @@ def MEloss(recM,logpM):
     M = recM.shape[0]
     MEloss = 0
     for m in range(M):
-        MEloss = MEloss + recM[m]*logpM[m]
+        MEloss = MEloss + recM[m]+logpM[m]
     MEloss /= M
     return MEloss
 
