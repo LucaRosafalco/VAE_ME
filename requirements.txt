@@ -1,0 +1,4 @@
+numpy==1.17.4
+sklearn==1.17.4
+tensorflow==2.2.0
+keras==1.17.4
