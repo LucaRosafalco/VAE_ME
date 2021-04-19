@@ -55,7 +55,7 @@ def MEloss(recM,logpM):
     for m in range(M):
         MEloss = MEloss + recM[m]*logpM[m]
     MEloss /= M
-    return MEloss
+    return MEloss 
 
 def vae_l(rec_loss,kl):
     vae_l = rec_loss + kl
