@@ -81,7 +81,7 @@ def ME(M,recM,logpM):
         if guevara is None:
             guevara = che
         else:
-            guevara = tf.concat([che, guevara],0)
+            guevara = tf.concat([guevara,che],0)
     return guevara
 
 # model definition
