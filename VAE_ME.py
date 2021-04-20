@@ -14,6 +14,11 @@ from tensorflow import keras
 from sklearn.model_selection import train_test_split
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+print('numpy==',np.__version__)
+print('sklearn==',np.__version__)
+print('tensorflow==',tf.__version__)
+print('keras==',np.__version__)
+
 # minimal settings%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #NN hyperparameters
 n_points   = 32
@@ -55,7 +60,7 @@ def MEloss(recM,logpM):
     for m in range(M):
         MEloss = MEloss + recM[m]+logpM[m]
     MEloss /= M
-    return MEloss 
+    return MEloss
 
 def vae_l(rec_loss,kl):
     vae_l = rec_loss + kl
@@ -72,6 +77,8 @@ def ME(M,recM,logpM):
     guevara = None
     for m in range(M):
         che = logpM[m] + recM[m] - keras.backend.log(ME_sum)
+        if tf.math.exp(che) < 1e-06:
+            che = tf.math.log(1e-06)
         che = tf.expand_dims(che, axis=0)
         if guevara is None:
             guevara = che
@@ -88,55 +95,55 @@ class MEVAE(keras.models.Model):
 
         logpM = np.zeros(M)
         for m in range(M):
-            logpM[m] = 1/M
+            logpM[m] = tf.math.log(1/M)
         logpM = keras.backend.variable(value=logpM)
         self.logpM = logpM
 
         self.encoder = keras.Sequential(
             [
                 keras.layers.InputLayer(input_shape=n_points, name='input_enc'),
-                keras.layers.Dense(16, name='dense1', activation='relu'),
-                keras.layers.Dense(8,  name='dense2', activation='relu'),
+                keras.layers.Dense(8, name='dense1', activation='relu'),
+                keras.layers.Dense(8,  name='dense2', activation=None),
             ]
-        ) 
+        )
 
         self.decoder = keras.Sequential(
             [
                 keras.layers.InputLayer(input_shape=4, name='input_dec'),
-                keras.layers.Dense(16,name='dense1', activation='relu'),
-                keras.layers.Dense(n_points,name='dense2', activation='relu'),
+                keras.layers.Dense(8,name='dense1', activation='relu'),
+                keras.layers.Dense(n_points,name='dense2', activation=None),
             ]
         )
 
         self.decoder1 = keras.Sequential(
             [
                 keras.layers.InputLayer(input_shape=1, name='input_dec1'),
-                keras.layers.Dense(16,name='dense11', activation='relu'),
-                keras.layers.Dense(n_points,name='dense21', activation='relu'),
+                keras.layers.Dense(8,name='dense11', activation='relu'),
+                keras.layers.Dense(n_points,name='dense21', activation=None),
             ]
         )
 
         self.decoder2 = keras.Sequential(
             [
                 keras.layers.InputLayer(input_shape=2, name='input_dec2'),
-                keras.layers.Dense(16,name='dense12', activation='relu'),
-                keras.layers.Dense(n_points,name='dense22', activation='relu'),
+                keras.layers.Dense(8,name='dense12', activation='relu'),
+                keras.layers.Dense(n_points,name='dense22', activation=None),
             ]
         )
 
         self.decoder3 = keras.Sequential(
             [
                 keras.layers.InputLayer(input_shape=3, name='input_dec3'),
-                keras.layers.Dense(16,name='dense13', activation='relu'),
-                keras.layers.Dense(n_points,name='dense23', activation='relu'),
+                keras.layers.Dense(8,name='dense13', activation='relu'),
+                keras.layers.Dense(n_points,name='dense23', activation=None),
             ]
         )
 
         self.decoder4 = keras.Sequential(
             [
                 keras.layers.InputLayer(input_shape=4, name='input_dec4'),
-                keras.layers.Dense(16,name='dense14', activation='relu'),
-                keras.layers.Dense(n_points,name='dense24', activation='relu'),
+                keras.layers.Dense(8,name='dense14', activation='relu'),
+                keras.layers.Dense(n_points,name='dense24', activation=None),
             ]
         )
 
@@ -195,8 +202,11 @@ class MEVAE(keras.models.Model):
             rec4 = keras.backend.mean(rec4,axis=0)
             recM = keras.backend.mean(recM,axis=0)
             
+            che = keras.backend.exp(self.logpM)
+            keras.backend.print_tensor(che)
             guevara= ME(self.M,recM,self.logpM)
             self.logpM.assign(guevara)
+            
 
             rec = self.rec_loss(inp,out)
             rec = keras.backend.mean(rec)*self.rec_trick
@@ -218,10 +228,7 @@ class MEVAE(keras.models.Model):
         self.opt.apply_gradients(zip(grads_enc, self.encoder.trainable_variables))
         grads_dec = tape.gradient(vae_l,self.decoder.trainable_variables)
         self.opt.apply_gradients(zip(grads_dec, self.decoder.trainable_variables))
-        # che = np.squeeze(che,axis=1)
-        # che = che.tolist()
-        # keras.backend.print_tensor(recM, message='recM = ')
-        return {"kl": kl, 'ME_l': ME_l}#{"kl": kl, "rec1": rec1, "rec2": rec2, "rec3": rec3, "rec4":rec4, "ME_loss": ME_l, "cond_evid": che}
+        return {"kl": kl}#{"kl": kl, "rec1": rec1, "rec2": rec2, "rec3": rec3, "rec4":rec4, "ME_loss": ME_l, "cond_evid": che}
 
     def test_step(self,inp):
         if isinstance(inp, tuple):
