@@ -77,8 +77,9 @@ def ME(M,recM,logpM):
     guevara = None
     for m in range(M):
         che = logpM[m] + recM[m] - keras.backend.log(ME_sum)
-        if tf.math.exp(che) < 1e-06:
-            che = tf.math.log(1e-06)
+        print(che)
+        # if tf.math.exp(che) < 1e-06:
+        #     che = tf.math.log(1e-06)
         che = tf.expand_dims(che, axis=0)
         if guevara is None:
             guevara = che
@@ -86,12 +87,27 @@ def ME(M,recM,logpM):
             guevara = tf.concat([guevara,che],0)
     return guevara
 
+# increment epoch
+def incr_epoch(cur_epoch,iter_counter,n_iter_per_epoch):
+    if iter_counter == 0:
+        iter_counter = n_iter_per_epoch
+        cur_epoch = cur_epoch + 1
+    return cur_epoch, iter_counter
+
+# decrease iteration counter
+def decr_iter(iter_counter):
+    iter_counter = iter_counter-1    
+    return iter_counter
+
 # model definition
 class MEVAE(keras.models.Model):
-    def __init__(self,M,rec_trick):
+    def __init__(self,M,rec_trick,n_iter_per_epoch):
         super(MEVAE, self).__init__()
         self.M = M
         self.rec_trick = rec_trick
+        self.cur_epoch = keras.backend.variable(value=0)
+        self.iter_counter = keras.backend.variable(value=n_iter_per_epoch)
+        self.n_iter_per_epoch = n_iter_per_epoch
 
         logpM = np.zeros(M)
         for m in range(M):
@@ -206,7 +222,13 @@ class MEVAE(keras.models.Model):
             keras.backend.print_tensor(che)
             guevara= ME(self.M,recM,self.logpM)
             self.logpM.assign(guevara)
-            
+
+            che = decr_iter(self.iter_counter)
+            self.iter_counter.assign(che)
+            [che,guevara] = incr_epoch(self.cur_epoch,self.iter_counter,self.n_iter_per_epoch)
+            self.cur_epoch.assign(che)
+            self.iter_counter.assign(guevara)
+            keras.backend.print_tensor(che)
 
             rec = self.rec_loss(inp,out)
             rec = keras.backend.mean(rec)*self.rec_trick
@@ -261,21 +283,10 @@ for i1 in range(n_instances):
 X_tr, X_test = train_test_split(X, test_size=0.2, random_state=5)
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-# plain VAE training %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# VAE = VAE_plain()
-
-# VAE.compile(
-#     opt=keras.optimizers.Adam(),
-#     rec_loss=rec_loss,
-#     kl_loss=kl_loss,
-#     vae_l=vae_l)
-
-# history = VAE.fit(X_tr,epochs=n_epochs,batch_size=batch_size,validation_data=[X_test])
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 # ME VAE training %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-VAE_ME = MEVAE(M,rec_trick)
+n_iter_per_epoch = X_tr.shape[0]/batch_size
+
+VAE_ME = MEVAE(M,rec_trick,n_iter_per_epoch)
 
 VAE_ME.compile(
        opt=keras.optimizers.SGD(),

@@ -54,7 +54,7 @@ class VAE_plain(keras.models.Model):
             [
                 keras.layers.InputLayer(input_shape=n_points, name='input_enc'),
                 keras.layers.Dense(8, name='dense1', activation='relu'),
-                keras.layers.Dense(8,  name='dense2', activation=None),
+                keras.layers.Dense(8,  name='dense2', activation=None,),
             ]
         )
 
