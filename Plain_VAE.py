@@ -17,8 +17,8 @@ from sklearn.model_selection import train_test_split
 # minimal settings%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #NN hyperparameters
 n_points   = 32
-batch_size = 16
-n_epochs   = 20
+batch_size = 8
+n_epochs   = 80
 
 #data
 data_root  = 'D:\\Luca\\Dati\\'
@@ -53,16 +53,16 @@ class VAE_plain(keras.models.Model):
         self.encoder = keras.Sequential(
             [
                 keras.layers.InputLayer(input_shape=n_points, name='input_enc'),
-                keras.layers.Dense(16, name='dense1', activation='relu'),
-                keras.layers.Dense(8,  name='dense2', activation='relu'),
+                keras.layers.Dense(8, name='dense1', activation='relu'),
+                keras.layers.Dense(8,  name='dense2', activation=None),
             ]
         )
 
         self.decoder = keras.Sequential(
             [
                 keras.layers.InputLayer(input_shape=4, name='input_dec'),
-                keras.layers.Dense(16,name='dense1', activation='relu'),
-                keras.layers.Dense(n_points,name='dense2', activation='relu'),
+                keras.layers.Dense(8,name='dense1', activation='relu'),
+                keras.layers.Dense(n_points,name='dense2', activation=None),
             ]
         )
 
