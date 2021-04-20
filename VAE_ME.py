@@ -98,7 +98,7 @@ class MEVAE(keras.models.Model):
                 keras.layers.Dense(16, name='dense1', activation='relu'),
                 keras.layers.Dense(8,  name='dense2', activation='relu'),
             ]
-        )
+        ) 
 
         self.decoder = keras.Sequential(
             [
